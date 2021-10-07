@@ -310,30 +310,16 @@ def Main_text():
 
 dataset1_cls = "wine"
 dataset2_cls = "breast cancer"
+
 Main_cls(dataset1_cls)
 Main_cls(dataset2_cls) 
-# for i in range(20):
-#     Main_cls(dataset1_cls)
 
-# for i in range(20):
-#     Main_cls(dataset2_cls) 
-# dataset1_reg = "boston"
-# dataset2_reg = "superconductivity"
-# dataset3_reg = "diabetes"
+dataset1_reg = "boston"
+dataset2_reg = "superconductivity"
+dataset3_reg = "diabetes"
 
-# for i in range(20):
-#     Main_cls(dataset1_cls)
 
-# Main_text()
-# print(dataset1_reg)
-# for i in range(1):
-#     Main_reg(dataset1_reg)
-# print(dataset2_reg)
-# for i in range(1):
-#     Main_reg(dataset2_reg)
-# print(dataset3_reg)
-# for i in range(1):
-#     Main_reg(dataset3_reg)
-# Main_cls(dataset1_cls):
-#     Main_reg(dataset2_cls)   
-#sns.pairplot(boston_df);
+# Main_reg(dataset1_reg)
+# Main_reg(dataset2_reg)
+Main_reg(dataset3_reg)
+
