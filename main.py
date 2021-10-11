@@ -319,7 +319,7 @@ dataset2_reg = "superconductivity"
 dataset3_reg = "diabetes"
 
 
-# Main_reg(dataset1_reg)
-# Main_reg(dataset2_reg)
+Main_reg(dataset1_reg)
+Main_reg(dataset2_reg)
 Main_reg(dataset3_reg)
 

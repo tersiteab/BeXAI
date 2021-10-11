@@ -326,4 +326,45 @@ def monotonicity_metric_txt(model, x, coefs, base):
         else:
             final_.append(False)
     return any(final_)
+def pred_func(images,model):
+    if images.shape[2] == 1:
+        return model.predict(images.reshape((1,28,28,1)))
+    elif images.shape[2] == 3:
+        return model.predict(images.reshape(1,28,28,3))
+
+# pred_fn2(x_test2)[0]
+
+
+def faithfulness_metrics_cls(model,X,coefs,base):
     
+    pred_class = np.amax(pred_func(X,model))
+    # ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
+    pred_probs = []
+    shap_list = []
+    # x = X[0,:,:] 
+    # print("original")
+    plot(X)
+    for i in range(1,5):
+      for j in range(1,5):
+        #compute average shap_val for superpixel of size (4x4)
+        avg_shap = np.average(coefs[7*(i-1) :7*i ,7*(j-1) :7*j])
+        # print(avg_shap)
+        shap_list.append(avg_shap)                      
+        x_copy = X.copy()
+        # print(x_copy[0,7*(i-1) :7*i ,7*(j-1) :7*j].shape)
+        # print(base[0,7*(i-1) :7*i ,7*(j-1) :7*j].shape)
+        x_copy[7*(i-1) :7*i ,7*(j-1) :7*j,0] = base[7*(i-1) :7*i ,7*(j-1) :7*j,0]
+        # print("ablated")
+        plot(x_copy)
+        # print("Avg shap",avg_shap)
+        x_copy_pr = np.amax(pred_func(x_copy,model))
+        # print(x_copy_pr)
+        # print(pred_class)
+        pred_probs.append(x_copy_pr-pred_class)
+      
+    #   print(i)
+    # print(shap_list)
+    # print(pred_probs)
+
+    return -np.corrcoef(np.array(shap_list), np.array(pred_probs))[0,1]
+

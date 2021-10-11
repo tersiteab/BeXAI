@@ -121,12 +121,31 @@ def Explanation_reg(explainer,model,X,X_ref,dataSetType,task):
                 return explanation
         elif dataSetType == "IMAGE":
             if explainer == "SHAP":
-                background = X[:100]
+                background = x_test2[np.random.choice(x_test2.shape[0], 100, replace=False)]
                 e = shap.DeepExplainer(model, background)
-                n_test_images = 10
-                test_images = X[100:100+n_test_images]
-                shap_values = e.shap_values(test_images)
-                return e,shap_values
+
+
+                shap_values = e.shap_values(x_test2[1:5])
+                #shap_values_neg = e.shap_values(-x_test2[1:5])
+
+                shap.image_plot(shap_values, x_test2[1:5])
+
+                #shap.image_plot(shap_values_neg, x_test2[1:5])
+                return np.array(shap_values)
+            elif explainer == "LIME"
+                pred_fn1 = lambda images: model1.predict(images)
+                explainer = lime_image.LimeImageExplainer(random_state=42)
+
+                explanation_val = []
+                explanation=[]
+                for i in range(4):
+                e = explainer.explain_instance(
+                        x_test1[10], 
+                        pred_fn1)
+                explanation_val.append(e.segments)
+                explanation.append(e)
+
+                return np.array(explanation_val)
             # elif explainer == "LIME":
             #     expl = lime_image.LimeImageExplainer()
             #     explanation = expl.explain_instance(np.array(pill_transf(img)), 
