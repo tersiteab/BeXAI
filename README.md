@@ -60,4 +60,4 @@ Paper: [Lundberg, Scott M., and Su-In Lee. “A unified approach to interpreting
 
 **LIME**: 
 
-Paper: [Ribeiro, Marco Tulio, Sameer Singh, and Carlos Guestrin. “Why should I trust you?: Explaining the predictions of any classifier.” Proceedings of the 22nd](https://arxiv.org/abs/1602.04938) ACM SIGKDD international conference on knowledge discovery and data mining. ACM (2016)
+Paper: [Ribeiro, Marco Tulio, Sameer Singh, and Carlos Guestrin. “Why should I trust you?: Explaining the predictions of any classifier.” Proceedings of the 22nd](https://arxiv.org/abs/1602.04938) 
