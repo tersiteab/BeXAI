@@ -33,7 +33,7 @@ For Regression Task
 
 Boston Housing Dataset-available on Scikit Learn Library
 
-Superconductivity-available on Stanford ML dataset repository --link--
+Superconductivity-available on UCI ML dataset repository [Superconductivty Data Data Set](https://archive.ics.uci.edu/ml/datasets/superconductivty+data)
 
 Diabetes Dataset- available on Scikit Learn Library
 
@@ -58,6 +58,6 @@ IMDB -available on Scikit Learn Library
 
 Paper: [Lundberg, Scott M., and Su-In Lee. “A unified approach to interpreting model predictions” Advances in Neural Information Processing Systems. 2017](https://arxiv.org/abs/1705.07874)
 
-**LIME**: 
+**LIME**:  creates explanation by building proxy linear model(like Linear reg and Decision tree) that approximates the target model around the instance of interest and assigning importance of features according to the coefficients of the proxy model 
 
 Paper: [Ribeiro, Marco Tulio, Sameer Singh, and Carlos Guestrin. “Why should I trust you?: Explaining the predictions of any classifier.” Proceedings of the 22nd](https://arxiv.org/abs/1602.04938) 
