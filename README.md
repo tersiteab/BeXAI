@@ -2,9 +2,9 @@
 This is a benchmark suite for selected explainable AI (XAI).
 The benchmark suite consists of Target machine learning models that are to be explained. These models are trained across text, image and tabular datasets. Two prominent model-agnostic. post-hoc local explainers are used to generate interpretations of predictions made by the target models. They are LIME(Local Interpretable Model-agnostic Explanation) and SHAP(SHapley Additive exPlanation). To evaluate the performance of these explainers, fidelity and monotonicity metrics are used. Fidelity measures how well the exlanations match with the model prediction. Monotonicity(consistency) is desirabe characterstic that feature importance based explainers like SHAP and LIME to have. Monotonicity is...
 
-Target Models
+##Target Models
 
-Regression Models:
+###Regression Models:
 
 Linear Regression
 
@@ -13,7 +13,7 @@ Random Forest Regression
 Support Vector Machine Regression
 
 
-Classification Models:
+###Classification Models:
 
 Logistic Regression
 
@@ -25,9 +25,9 @@ CNN Image Classification
 
 RNN Text Classification
 
-Datasets:
+##Datasets:
 
-Tabular Datasets:
+###Tabular Datasets:
 
 For Regression Task
 
