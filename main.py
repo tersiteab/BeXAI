@@ -1,4 +1,4 @@
-from explanations.explainer import Explanation_reg,Explanation_cls
+from explanations.explainer import Explanation,Explanation_cls
 from target_models.model import loadDataset,train_model,train_test_split
 from evaluation.metrics import metrics_cls,metrics_reg,fai_cls_forText,monotonicity_metric_txt
 import shap
@@ -50,24 +50,24 @@ def Main_reg(dataset):
     idx = 10
     print("--------------------------------------------------------------")
     print("Building Explanation ...")
-    LR_shap,LR_baseVal = Explanation_reg("SHAP",LR_model,X_test.iloc[:idx,],X100,"tabular","Regression")
-    LR_shap_k,RF_expected_val_k = Explanation_reg("Kernel SHAP",LR_model,X_test.iloc[:idx,],X100_,"tabular","Regression")
-    # LR_lime1 = Explanation_reg("LIME",LR_model,X_test,X100)
-    LR_lime = Explanation_reg("LIME-SHAP",LR_model,X_test.iloc[:idx,],X100,"tabular","Regression")
+    LR_shap,LR_baseVal = Explanation("SHAP",LR_model,X_test.iloc[:idx,],X100,"tabular","Regression")
+    LR_shap_k,RF_expected_val_k = Explanation("Kernel SHAP",LR_model,X_test.iloc[:idx,],X100_,"tabular","Regression")
+    # LR_lime1 = Explanation("LIME",LR_model,X_test,X100)
+    LR_lime = Explanation("LIME-SHAP",LR_model,X_test.iloc[:idx,],X100,"tabular","Regression")
 
-    RF_shap, RF_baseVal = Explanation_reg("SHAP",RF_model,X_test.iloc[:idx,],X100,"tabular","Regression")
-    RF_shap_k,RF_expected_val_k = Explanation_reg("Kernel SHAP",RF_model,X_test.iloc[:idx,],X100_,"tabular","Regression")
-    # RF_lime1 = Explanation_reg("LIME",RF_model,X_test,X100)
-    RF_lime = Explanation_reg("LIME-SHAP",RF_model,X_test.iloc[:idx],X100,"tabular","Regression")
+    RF_shap, RF_baseVal = Explanation("SHAP",RF_model,X_test.iloc[:idx,],X100,"tabular","Regression")
+    RF_shap_k,RF_expected_val_k = Explanation("Kernel SHAP",RF_model,X_test.iloc[:idx,],X100_,"tabular","Regression")
+    # RF_lime1 = Explanation("LIME",RF_model,X_test,X100)
+    RF_lime = Explanation("LIME-SHAP",RF_model,X_test.iloc[:idx],X100,"tabular","Regression")
 
     X100S = shap.maskers.Independent(X_trainS, max_samples=100)
     X100_S = shap.utils.sample(X_trainS, 100)
     print("SVC-shap")
-    SVR_shap, SVR_baseVal = Explanation_reg("SHAP",SVR_model,X_testS[:idx,],X100S,"tabular","Regression")
+    SVR_shap, SVR_baseVal = Explanation("SHAP",SVR_model,X_testS[:idx,],X100S,"tabular","Regression")
     print("SVC kernel shap")
-    SVR_shap_k,SVR_expected_val_k = Explanation_reg("Kernel SHAP",SVR_model,X_testS[:idx,],X100_S,"tabular","Regression")
+    SVR_shap_k,SVR_expected_val_k = Explanation("Kernel SHAP",SVR_model,X_testS[:idx,],X100_S,"tabular","Regression")
     print("svc lime")
-    SVR_lime = Explanation_reg("LIME-SHAP",SVR_model,X_testS[:idx,],X100S,"tabular","Regression")
+    SVR_lime = Explanation("LIME-SHAP",SVR_model,X_testS[:idx,],X100S,"tabular","Regression")
     print("Done building Explanation")
 
 
@@ -151,19 +151,19 @@ def Main_cls(dataset):
     
     print("--------------------------------------------------------------")
     print("Building Explanation ...")
-    LR_shap,LR_baseVal = Explanation_cls("SHAP",predict_fnLR,X_test[:10,],X100)
-    LR_shap_k,LR_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnLR,X_test[:10,],X100_)
-    LR_lime1 = Explanation_cls("LIME",LR_model.predict_proba,X_test[:10],X100)
+    LR_shap,LR_baseVal = Explanation("SHAP",predict_fnLR,X_test[:10,],X100,"tabular","Classification")
+    LR_shap_k,LR_expected_val_k = Explanation("Kernel SHAP",predict_fnLR,X_test[:10,],X100_,"tabular","Classification")
+    LR_lime1 = Explanation("LIME",LR_model.predict_proba,X_test[:10],X100,"tabular","Classification")
     
-    RF_shap, RF_baseVal = Explanation_cls("SHAP",predict_fnRF,X_test[:10,],X100)
-    RF_shap_k,RF_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnRF,X_test[:10,],X100_)
-    RF_lime1 = Explanation_cls("LIME",RF_model.predict_proba,X_test[:10,],X100)
+    RF_shap, RF_baseVal = Explanation("SHAP",predict_fnRF,X_test[:10,],X100,"tabular","Classification")
+    RF_shap_k,RF_expected_val_k = Explanation("Kernel SHAP",predict_fnRF,X_test[:10,],X100_,"tabular","Classification")
+    RF_lime1 = Explanation("LIME",RF_model.predict_proba,X_test[:10,],X100,"tabular","Classification")
     print("SVC-shap")
-    SVC_shap, SVC_baseVal = Explanation_cls("SHAP",predict_fnSVC,X_testS[:10,],X100)
+    SVC_shap, SVC_baseVal = Explanation("SHAP",predict_fnSVC,X_testS[:10,],X100,"tabular","Classification")
     print("SVC-shap_k")
-    SVC_shap_k,SVC_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnSVC,X_testS[:10,],X100_)
+    SVC_shap_k,SVC_expected_val_k = Explanation("Kernel SHAP",predict_fnSVC,X_testS[:10,],X100_,"tabular","Classification")
     print("SVC-shap")
-    SVC_lime1 = Explanation_cls("LIME",SVC_model.predict_proba,X_testS[:10,],X100)
+    SVC_lime1 = Explanation("LIME",SVC_model.predict_proba,X_testS[:10,],X100,"tabular","Classification")
     
     print("Done building Explanation")
     ################### evaluation#####################
@@ -312,14 +312,14 @@ dataset1_cls = "wine"
 dataset2_cls = "breast cancer"
 
 Main_cls(dataset1_cls)
-Main_cls(dataset2_cls) 
+# Main_cls(dataset2_cls) 
 
-dataset1_reg = "boston"
-dataset2_reg = "superconductivity"
-dataset3_reg = "diabetes"
+# dataset1_reg = "boston"
+# dataset2_reg = "superconductivity"
+# dataset3_reg = "diabetes"
 
 
-Main_reg(dataset1_reg)
-Main_reg(dataset2_reg)
-Main_reg(dataset3_reg)
+# Main_reg(dataset1_reg)
+# Main_reg(dataset2_reg)
+# Main_reg(dataset3_reg)
 
