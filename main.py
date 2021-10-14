@@ -1,6 +1,6 @@
-from explanations.explainer import Explanation,Explanation_cls
-from target_models.model import loadDataset,train_model,train_test_split
-from evaluation.metrics import metrics_cls,metrics_reg,fai_cls_forText,monotonicity_metric_txt
+from explanations.explainer import Explanation
+from target_models.model import loadDataset,train_model,train_test_split,get_dataset,train
+from evaluation.metrics import faithfulness_metrics_image_cls,metrics_cls,metrics_reg,fai_cls_forText,monotonicity_metric_txt,pred_func,faithfulness_metrics_cls,monotonicity
 import shap
 from sklearn.preprocessing import StandardScaler
 import numpy as np
@@ -9,6 +9,12 @@ import matplotlib.pyplot as pp
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 tf.compat.v1.disable_v2_behavior()
+from tensorflow import keras
+from tensorflow.keras import layers
+import tensorflow as tf
+import lime
+from lime import lime_image
+from skimage.segmentation import mark_boundaries
 
 
 def Main_reg(dataset):
@@ -257,23 +263,20 @@ def Main_cls(dataset):
     # print("monotonicity in form of boolean for SVC_shap_k:",monotonicity_SVC_shap_k)
     print("monotonicity in form of boolean for SVC_lime:",monotonicity_SVC_lime)
 
+
 def Main_text():
-    X,y = loadDataset("imdb")
-    x_train,y_train,x_test,y_test = train_test_split(X,y)   
-    imdb_model = train_model(model= "RNN",X =  x_train,y = y_train)
     
+    x_train,y_train,x_test,y_test = loadDataset("imdb")   
+    imdb_model = train_model(model= "RNN",X =  x_train,y = y_train)
+   
     # we use the first 100 training examples as our background dataset to integrate over
     print("------------ buildin Explanation with Deepshap explainer----------------------")
-    from tensorflow.keras.datasets import imdb
-    tf.compat.v1.disable_v2_behavior()
+
     explainer = shap.DeepExplainer(imdb_model, x_train[:100])
 
     # explain the first 10 predictions
     # explaining each prediction requires 2 * background dataset size runs
     shap_values = explainer.shap_values(x_test[:20])
-
-    # init the JS visualization code
-    shap.initjs()
 
     # transform the indexes to words
     
@@ -285,7 +288,7 @@ def Main_text():
 
     # plot the explanation of the first prediction
     # Note the model is "multi-output" because it is rank-2 but only has one column
-    shap.force_plot(explainer.expected_value[0], shap_values[0][0], x_test_words[0])
+    # shap.force_plot(explainer.expected_value[0], shap_values[0][0], x_test_words[0])
     print("---Done building Explanation---")
     print("Faithfulness metrics")
     model = imdb_model
@@ -296,8 +299,7 @@ def Main_text():
         coefs = shap_values[0][i]
         f.append(fai_cls_forText(model,x,coefs,base))
 
-    pp.plot(f,'-o')
-    pp.show()
+    
     print("average faithfulness of shap text explainer for RNN based text classifier:", np.mean(np.array(f)))
     model = imdb_model
     base = np.zeros(shape=(100))
@@ -347,6 +349,7 @@ def main_image():
 
     pred_fn1 = lambda images: model1.predict(images)
     #============================LIME Explainer ==========================================
+    print("Building explanations with SHAP ...")
     explainer = lime_image.LimeImageExplainer(random_state=42)
 
     explanation_val = []
@@ -358,25 +361,25 @@ def main_image():
       explanation_val.append(e.segments)
       explanation.append(e)
 
-    plt.imshow(x_test1[10])
+    pp.imshow(x_test1[10])
     image, mask = explanation[0].get_image_and_mask(
              model1.predict(
                   x_test1[10].reshape((1,28,28,3))
              ).argmax(axis=1)[0],
              positive_only=True, 
              hide_rest=False)
-    plt.imshow(mark_boundaries(image, mask))
+    pp.imshow(mark_boundaries(image, mask))
 
     explanation_val_np = np.array(explanation_val)
-
+    print("Done")
     #============================SHAP Explainer ==========================================
-
+    print("Building explanations with SHAP ...")
     background = x_test2[np.random.choice(x_test2.shape[0], 100, replace=False)]
     e = shap.DeepExplainer(model2, background)
     shap_values = e.shap_values(x_test2[1:5])
     shap.image_plot(shap_values, x_test2[1:5])#,matplotlib=True)
     sv = np.array(shap_values)
-    
+    print("Done")
     #===========================================Evaluation========================================
     idx1=[]
     idx2=[]
@@ -402,7 +405,7 @@ def main_image():
       __idx = idx2[i]
       coefs = sv[__idx,i,:,:,0]
       X = x_test2[i]
-      fidelity_shap.append(faithfulness_metrics_cls(model2,X,coefs,base))
+      fidelity_shap.append(faithfulness_metrics_image_cls(model2,X,coefs,base))
 
     base = np.zeros(x_test1[0].shape)
     # print(x_test1[0].shape)
@@ -412,7 +415,7 @@ def main_image():
       coefs = explanation_val_np[i]
       X = x_test1[i]
       # print(faithfulness_metrics_cls(model,X,coefs,base))
-      fidelity_lime.append(faithfulness_metrics_cls(model1,X,coefs,base))
+      fidelity_lime.append(faithfulness_metrics_image_cls(model1,X,coefs,base))
     print("Average Fidelity for SHAP",fidelity_shap)
     print("Average Fidelity for LIME",fidelity_lime)
     #Monotonicity
@@ -420,10 +423,7 @@ def main_image():
     for i in range(4):
       __idx = idx1[i]
       coefs = explanation_val_np[i]
-
-      print("coef shape",coefs.shape)
       X = x_test1[i]
-      print("X shape",X.shape)
       # print(faithfulness_metrics_cls(model,X,coefs,base))
       mono_LIME.append(monotonicity(model1,X,coefs,base))
     mono_SHAP = []
@@ -431,18 +431,15 @@ def main_image():
     for i in range(4):
       __idx = idx2[i]
       coefs = sv[__idx,i,:,:,0]
-
-      print("coef shape",coefs.shape)
       X = x_test2[i]
-      print("X shape",X.shape)
       # print(faithfulness_metrics_cls(model,X,coefs,base))
       mono_SHAP.append(monotonicity(model2,X,coefs,base))
     print("Monotonicity for SHAP",mono_SHAP)
     print("Monotonicity Fidelity for LIME",mono_LIME)
-dataset1_cls = "wine"
-dataset2_cls = "breast cancer"
+# dataset1_cls = "wine"
+# dataset2_cls = "breast cancer"
 
-Main_cls(dataset1_cls)
+# Main_cls(dataset1_cls)
 # Main_cls(dataset2_cls) 
 
 # dataset1_reg = "boston"
@@ -454,3 +451,5 @@ Main_cls(dataset1_cls)
 # Main_reg(dataset2_reg)
 # Main_reg(dataset3_reg)
 
+# main_image()
+Main_text()
