@@ -1,6 +1,6 @@
 # BeXAI
 This is a benchmark suite for selected explainable AI (XAI).
-<p>The benchmark suite consists of Target machine learning models that are to be explained. These models are trained across text, image and tabular datasets. Two prominent model-agnostic, post-hoc local explainers are used to generate interpretations of predictions made by the target models: LIME(Local Interpretable Model-agnostic Explanation) and SHAP(SHapley Additive exPlanation). To evaluate the performance of these explainers, fidelity and monotonicity metrics are used. Fidelity measures how well the exlanations match with the model prediction. Monotonicity(consistency) is desirabe characterstic that feature importance based explainers like SHAP and LIME to have. Monotonicity is...</p>
+<p>The benchmark suite consists of Target machine learning models that are to be explained. These models are trained across text, image and tabular datasets. Two prominent model-agnostic, post-hoc local explainers are used to generate interpretations of predictions made by the target models: LIME(Local Interpretable Model-agnostic Explanation) and SHAP(SHapley Additive exPlanation). To evaluate the performance of these explainers, fidelity and monotonicity metrics are used. Fidelity measures how well the exlanations match with the model prediction. Monotonicity(consistency) is desirabe characterstic that feature importance based explainers like SHAP and LIME to have. Monotonicity checks if the explanation has this property </p>
 
 ## Target Models
 
@@ -50,8 +50,7 @@ For Classification Task
 
 **Text Dataset**:
 
-- IMDB -available on Scikit Learn Library
-
+- IMDB -available on Keras Library
 ## Explainers
 
 **SHAP**: proposed by Lundberg et al, SHAP explainer uses coalition game theory to calculate the contributions of each feature to the prediction.
