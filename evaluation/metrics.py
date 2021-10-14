@@ -18,23 +18,6 @@ def plot(x):
   pp.plot(x,'-o')
   pp.show()
 
-def faithfulness_metric_reg(model, x, coefs, base):
-    predt = model.predict(np.transpose(x.reshape(-1,1)))
-    ar = np.argsort(coefs) 
-    pred_ts = np.zeros(x.shape[0])
-    diff = []
-    for ind in np.nditer(ar):
-        x_copy = x.copy()
-        d = x_copy[ind]-base[ind]
-        if d<0:
-            diff.append(-1)
-        else:
-            diff.append(1)
-        x_copy[ind] = base[ind]
-        x_copy_ts = model.predict(np.transpose(x_copy.reshape(-1,1)))
-        pred_ts[ind] = x_copy_ts
-    
-    return -np.corrcoef(np.array(diff)*coefs, pred_ts)[0,1]
 
 def faithfulness_metric_new_reg(model, x, coefs, base):
     predt = model.predict(np.transpose(x.reshape(-1,1)))
@@ -53,25 +36,11 @@ def faithfulness_metric_new_reg(model, x, coefs, base):
         pred_ts[ind] = x_copy_ts - predt
     
     return -np.corrcoef(coefs, pred_ts)[0,1]
-def faithfulness_metrics_cls1(model,x,coefs,base):
-#     pred_class = np.argmax(model.predict_proba(np.transpose(x.reshape(-1,1))), axis=1)[0]
-#     pred_prob_og = model.predict_proba(np.transpose(x.reshape(-1,1)))
-#     ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
-#     pred_probs = np.zeros(x.shape[0])
-#     diff = []
-#     for ind in np.nditer(ar):
-#         x_copy = x.copy()
-#         x_copy[ind] = base[ind]
-        
-#         x_copy_pr = model.predict_proba(x_copy.reshape(1,-1))
-#         pred_probs[ind] = x_copy_pr[0][pred_class]
-#         # print(pred_probs)
-#         # print(pred_class)
 
-#     return -np.corrcoef(coefs, pred_probs-pred_prob_og)[0,1]
+def faithfulness_metrics_cls1(model,x,coefs,base):
     pred_class = np.argmax(model.predict_proba(x.reshape(1,-1)), axis=1)[0]
     p = np.amax(model.predict_proba(x.reshape(1,-1)))
-#     print("og pred",p)
+
     #find indexs of coefficients in decreasing order of value
     ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
     pred_probs = np.zeros(x.shape[0])
@@ -91,33 +60,7 @@ def faithfulness_metrics_cls1(model,x,coefs,base):
 #     print(coefs, np.array(diff))
 
     return -np.corrcoef(coefs, -np.array(isPos)*np.array(diff))[0,1]
-def faithfulness_metrics_cls(model,x,coefs,base):
-    pred_class = np.argmax(model.predict_proba(np.transpose(x.reshape(-1,1))), axis=1)[0]
-    ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
-    pred_probs = np.zeros(x.shape[0])
-    for ind in np.nditer(ar):
-        x_copy = x.copy()
-        x_copy[ind] = base[ind]
-        x_copy_pr = model.predict_proba(x_copy.reshape(1,-1))
-        pred_probs[ind] = x_copy_pr[0][pred_class]
-        # print(pred_probs)
-        # print(pred_class)
 
-    return np.corrcoef(coefs, pred_probs)[0,1]
-
-def fai_cls(model,x,coefs,base):
-    pred_class = np.argmax(model.predict(x.reshape(1,-1)), axis=1)[0]
-    ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
-    pred_probs = np.zeros(x.shape[0])
-    for ind in np.nditer(ar):
-        x_copy = x.copy()
-        x_copy[ind] = base[ind]
-        x_copy_pr = model.predict(x_copy.reshape(1,-1))
-        pred_probs[ind] = x_copy_pr[0][pred_class]
-        # print(pred_probs)
-        # print(pred_class)
-
-    return -np.corrcoef(coefs, pred_probs)[0,1]
 
 def monotonicity_metric_reg(model, x, coefs, base):
     predict_ = model.predict(np.transpose(x.reshape(-1,1)))
@@ -144,6 +87,7 @@ def monotonicity_metric_reg(model, x, coefs, base):
         else:
             final_.append(False)
     return any(final_)
+
 def monotonicity_metric_cls(model, x, coefs, base):
     pred_class = np.argmax(model.predict_proba(x.reshape(1,-1)), axis=1)[0]
     x_copy = base.copy()

@@ -110,7 +110,7 @@ def Explanation(explainer,model,X,X_ref,dataSetType,task):
             elif explainer == "LIME":
                 class_names = ['negative', 'positive']
                 explainer = LimeTextExplainer(class_names=class_names)
-                #TODO X needs fixing
+               
                 explanation = explainer.explain_instance(X, model.predict, num_features=100)
                 return explanation
         elif dataSetType == "IMAGE":
