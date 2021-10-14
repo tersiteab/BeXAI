@@ -368,3 +368,76 @@ def faithfulness_metrics_cls(model,X,coefs,base):
 
     return -np.corrcoef(np.array(shap_list), np.array(pred_probs))[0,1]
 
+def pred_func(images,model):
+    if images.shape[2] == 1:
+        return model.predict(images.reshape((1,28,28,1)))
+    elif images.shape[2] == 3:
+        return model.predict(images.reshape(1,28,28,3))
+
+
+
+
+def faithfulness_metrics_cls(model,X,coefs,base):
+    
+    pred_class = np.amax(pred_func(X,model))
+    pred_probs = []
+    shap_list = []
+    
+    plot(X)
+    for i in range(1,5):
+      for j in range(1,5):
+        #compute average shap_val for superpixel of size (4x4)
+        avg_shap = np.average(coefs[7*(i-1) :7*i ,7*(j-1) :7*j])
+
+        shap_list.append(avg_shap)                      
+        x_copy = X.copy()
+        x_copy[7*(i-1) :7*i ,7*(j-1) :7*j,0] = base[7*(i-1) :7*i ,7*(j-1) :7*j,0]
+        
+        # plot(x_copy)
+        
+        x_copy_pr = np.amax(pred_func(x_copy,model))
+        pred_probs.append(x_copy_pr-pred_class)
+    return -np.corrcoef(np.array(shap_list), np.array(pred_probs))[0,1]
+
+
+def monotonicity(model,X,coefs,base):
+    pred_class = np.amax(pred_func(X,model))
+    shap_list = []
+    # print("original")
+    # plot(X)
+    x_copy = base.copy()
+
+    for i in range(1,8):
+      for j in range(1,8):
+        #compute average shap_val for superpixel of size (4x4)
+        avg_shap = np.average(coefs[4*(i-1) :4*i ,4*(j-1) :4*j])
+        shap_list.append(avg_shap) 
+
+    ar = np.argsort(np.array(shap_list))
+    pred_probs = np.zeros(np.array(shap_list).shape)#= []
+    isPos = [False for i in range(len(ar))]
+
+    for i in ar :  
+      if shap_list[i]<0:
+        isPos[i] = False
+      else:
+        isPos[i] = True
+      r = i // 4
+      c = i % 4
+      x_copy[4*r :4*(r+1) ,4*c :4*(c+4),0] = X[4*r :4*(r+1) ,4*c :4*(c+4),0]
+      # print("ablated")
+      # plot(x_copy)
+      x_copy_pr = np.amax(pred_func(x_copy,model))
+      pred_probs[i]=x_copy_pr
+
+    diff = np.diff(pred_probs[ar])
+    final_ = []
+    for i in range(len(diff)):
+        if isPos[i] == False and diff[i] < 0:
+            final_.append(True)
+        elif isPos[i] == True and diff[i] >=0:
+            final_.append(True)
+        else:
+            final_.append(False)
+    return any(final_)
+    

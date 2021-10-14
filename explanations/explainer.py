@@ -96,7 +96,7 @@ def Explanation(explainer,model,X,X_ref,dataSetType,task):
                 
                 
                 lime_explainer_shap = shap.other.LimeTabular(model, X, mode = 'classification')
-                lime_attribs = lime_eXplainer_shap.attributions(X,num_features=X.shape[1])
+                lime_attribs = lime_explainer_shap.attributions(X,num_features=X.shape[1])
                 exp_lime.append(lime_attribs)
                 return exp_lime
             else:
@@ -115,38 +115,26 @@ def Explanation(explainer,model,X,X_ref,dataSetType,task):
                 return explanation
         elif dataSetType == "IMAGE":
             if explainer == "SHAP":
-                background = x_test2[np.random.choice(x_test2.shape[0], 100, replace=False)]
+                background = X[np.random.choice(X.shape[0], 100, replace=False)]
                 e = shap.DeepExplainer(model, background)
+                shap_values = e.shap_values(X[1:5])
+                # shap.image_plot(shap_values, X[1:5])
 
-
-                shap_values = e.shap_values(x_test2[1:5])
-                #shap_values_neg = e.shap_values(-x_test2[1:5])
-
-                shap.image_plot(shap_values, x_test2[1:5])
-
-                #shap.image_plot(shap_values_neg, x_test2[1:5])
                 return np.array(shap_values)
             elif explainer == "LIME":
-                pred_fn1 = lambda images: model1.predict(images)
+                pred_fn1 = lambda images: model.predict(images)
                 explainer = lime_image.LimeImageExplainer(random_state=42)
 
                 explanation_val = []
                 explanation=[]
                 for i in range(4):
                     e = explainer.explain_instance(
-                            x_test1[10], 
+                            X[10], 
                             pred_fn1)
                     explanation_val.append(e.segments)
                     explanation.append(e)
 
                 return np.array(explanation_val)
-            # elif explainer == "LIME":
-            #     expl = lime_image.LimeImageExplainer()
-            #     explanation = expl.explain_instance(np.array(pill_transf(img)), 
-            #                              batch_predict, # classification function
-            #                              top_labels=5, 
-            #                              hide_color=0, 
-            #                              num_samples=1000)
         else:
             return None
 

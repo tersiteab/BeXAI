@@ -1,6 +1,6 @@
 from explanations.explainer import Explanation,Explanation_cls
-from target_models.model import loadDataset,train_model,train_test_split
-from evaluation.metrics import metrics_cls,metrics_reg,fai_cls_forText,monotonicity_metric_txt
+from target_models.model import loadDataset,train_model,train_test_split,get_dataset,train
+from evaluation.metrics import metrics_cls,metrics_reg,fai_cls_forText,monotonicity_metric_txt,pred_func,faithfulness_metrics_cls,monotonicity
 import shap
 from sklearn.preprocessing import StandardScaler
 import numpy as np
@@ -9,6 +9,12 @@ import matplotlib.pyplot as pp
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 tf.compat.v1.disable_v2_behavior()
+from tensorflow import keras
+from tensorflow.keras import layers
+import tensorflow as tf
+import lime
+from lime import lime_image
+from skimage.segmentation import mark_boundaries
 
 
 def Main_reg(dataset):
@@ -358,14 +364,14 @@ def main_image():
       explanation_val.append(e.segments)
       explanation.append(e)
 
-    plt.imshow(x_test1[10])
+    pp.imshow(x_test1[10])
     image, mask = explanation[0].get_image_and_mask(
              model1.predict(
                   x_test1[10].reshape((1,28,28,3))
              ).argmax(axis=1)[0],
              positive_only=True, 
              hide_rest=False)
-    plt.imshow(mark_boundaries(image, mask))
+    pp.imshow(mark_boundaries(image, mask))
 
     explanation_val_np = np.array(explanation_val)
 

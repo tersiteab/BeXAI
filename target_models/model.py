@@ -10,17 +10,31 @@ import sklearn.metrics
 import sklearn.datasets
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-
-# import torch, torchvision
-# from torchvision import datasets, transforms
-# from torch import nn, optim
-# from torch.nn import functional as F
-# from torchviz import make_dot
+from tensorflow.keras.datasets import mnist
+import tensorflow as tf
+tf.compat.v1.disable_v2_behavior() 
+from tensorflow import keras
+from tensorflow.keras import layers
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 tf.compat.v1.disable_v2_behavior()
 
 
+
+def to_rgb(x):
+    x_rgb = np.zeros((x.shape[0], 28, 28, 3))
+    for i in range(3):
+        x_rgb[..., i] = x[..., 0]
+    return x_rgb
+
+def get_dataset(rgb):
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    x_train = x_train.reshape((-1,28,28,1)).astype('float32') 
+    x_test = x_test.reshape((-1,28,28,1)).astype('float32') 
+    if rgb == False:
+        return x_train, y_train, x_test, y_test
+    else:
+        return to_rgb(x_train),y_train,to_rgb(x_test),y_test
 
 
 def loadDataset(dataset):
@@ -79,6 +93,23 @@ def split_train_test(X,y,test_size=0.3,randomstate=42,scale=False):
         y_scaled = sc.fit_transform(y)
 
         return train_test_split(X_scaled,y_scaled,test_size=test_size,random_state=randomstate)
+
+def train(rgb):
+  if rgb == True:
+    i = 3
+  else:
+    i = 1
+  model = keras.Sequential(
+      [
+      keras.Input(shape=(28,28,i)),
+      layers.Conv2D(16, i, activation='relu'),
+      layers.MaxPooling2D(),
+      layers.Flatten(),
+      layers.Dense(10,activation='sigmoid')
+      ]
+  )
+  return model
+
 def RNN(x_train,y_train,x_test,y_test,words):
     
     word_size=words
