@@ -395,9 +395,10 @@ def metrics_text(metrics_type,X,model,explainer_type,shap_val):
             return f
         #elif explainer_type == "LIME":
     elif metrics_type == "monotonicity":
-        if explainer_type == "LIME":
-            m = []
+        if explainer_type == "SHAP":
+            mono_text = []
             for i in range(10):
                 x = X[i]
                 coefs = shap_val[0][i]
-                m.append(monotonicity_metric_txt(model,x,coefs,base))
+                mono_text.append(monotonicity_metric_txt(model,x,coefs,base))
+            return mono_text

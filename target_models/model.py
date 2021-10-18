@@ -9,6 +9,7 @@ import matplotlib as plot
 import sklearn.metrics
 import sklearn.datasets
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import RandomizedSearchCV
 import matplotlib.pyplot as plt
 from tensorflow.keras.datasets import mnist
 from tensorflow import keras
@@ -93,6 +94,14 @@ def split_train_test(X,y,test_size=0.3,randomstate=42,scale=False):
         y_scaled = sc.fit_transform(y)
 
         return train_test_split(X_scaled,y_scaled,test_size=test_size,random_state=randomstate)
+def tune_hyperparameters(dict,X,y,model,noIter):
+    search = RandomizedSearchCV(model,
+                param_distributions= dict,
+                n_jobs=-1,
+                
+                random_state=1)
+    res = search.fit(X,y)
+    return res.best_params_
 
 def train_cnn(rgb):
     if rgb == True:
@@ -150,14 +159,37 @@ def RNN():
 def train_model(model, X,y,rgb = True):
     if model == "Linear Regression":
         lr = LinearRegression()
+        # params = {  'lrates' : [.5, .1, .01, .001, .0001],
+        #             # 'niterations' : [25000, 50000, 150000]
+        #         }
+        # best_params = tune_hyperparameters(params,X,y,lr,500)
+        # lr = LinearRegression(**best_params)
         lr.fit(X,y)
         return lr
     elif model == "Random Forest Regressor":
         rf_r = RandomForestRegressor()
+        max_d = [int(x) for x in np.linspace(10, 110, num = 11)]
+        max_d.append(None)
+        params = {
+            'n_estimators': [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)],
+            'max_features': ['auto','sqrt'],
+            'max_depth': max_d,
+            'min_samples_split': [2,5,10],
+            'min_samples_leaf': [1,2,4]
+        }
+        best_params = tune_hyperparameters(params,X,y,rf_r,100)
+        rf_r = RandomForestRegressor(**best_params)
         rf_r.fit(X,y)
         return rf_r
     elif model == "SVR":
-        svr = SVR(kernel = "rbf")
+        svr = SVR()
+        params = {
+            'C': [1, 10, 100, 1000], 
+            'gamma': [0.001, 0.0001], 
+            'kernel': ['rbf']
+        }
+        best_params = tune_hyperparameters(params,X,y,svr,100)
+        svr = SVR(**best_params)
         svr.fit(X,y)
         return svr
     elif model == "RNN":
