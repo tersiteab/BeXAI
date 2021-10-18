@@ -1,6 +1,6 @@
 from explanations.explainer import Explanation
-from target_models.model import loadDataset,train_model,train_test_split,get_dataset,train
-from evaluation.metrics import faithfulness_metrics_image_cls,metrics_cls,metrics_reg,fai_cls_forText,monotonicity_metric_txt,pred_func,monotonicity
+from target_models.model import loadDataset,train_model,train_test_split,get_dataset
+from evaluation.metrics import faithfulness_metrics_image_cls,metrics_cls,metrics_reg,fai_cls_forText,monotonicity_metric_txt,pred_func,monotonicity,metrics_image
 import shap
 from sklearn.preprocessing import StandardScaler
 import numpy as np
@@ -229,20 +229,45 @@ def Main_cls(dataset):
 
 
 def Main_text():
-    
+    # words=20000
+    # max_length=100
     x_train,y_train,x_test,y_test = loadDataset("imdb")   
     imdb_model = train_model(model= "RNN",X =  x_train,y = y_train)
-   
+    # (x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=words)
+    # """Padding the Text"""
+    # x_train = tf.keras.preprocessing.sequence.pad_sequences(x_train, maxlen=max_length)
+    # x_test = tf.keras.preprocessing.sequence.pad_sequences(x_test, maxlen=max_length)
+
+    # word_size=words
+    
+    # embed_size=128
+
+    # imdb_model=tf.keras.Sequential()
+    # # Embedding Layer
+    # imdb_model.add(tf.keras.layers.Embedding(word_size, embed_size, input_shape=(x_train.shape[1],)))
+    # # LSTM Layer
+    # imdb_model.add(tf.keras.layers.LSTM(units=128, activation='tanh'))
+    # # Output Layer
+    # imdb_model.add(tf.keras.layers.Dense(units=1, activation='sigmoid'))
+    # imdb_model.summary()
+
+    # imdb_model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
+
+    # imdb_model.fit(x_train, y_train, epochs=5, batch_size=128)
+    # test_loss, test_acurracy = imdb_model.evaluate(x_test, y_test)
+    # print("Test accuracy: {}".format(test_acurracy))
+    
     # we use the first 100 training examples as our background dataset to integrate over
-    print("------------ buildin Explanation with Deepshap explainer----------------------")
-
-    explainer = shap.DeepExplainer(imdb_model, x_train[:100])
-
-    # explain the first 10 predictions
-    # explaining each prediction requires 2 * background dataset size runs
-    shap_values = explainer.shap_values(x_test[:20])
-
-    # transform the indexes to words
+    print("------------ building Explanation with Deepshap explainer----------------------")
+    shap_values = Explanation(
+        explainer = "SHAP",
+        model = imdb_model,
+        X = x_test[:20],
+        X_ref = x_train[:100],
+        dataSetType="Text",
+        task = "Classification"
+    )
+    #transform the indexes to words
     
     words = imdb.get_word_index()
     num2word = {}
@@ -278,15 +303,7 @@ def main_image():
     x_train1,y_train1, x_test1,y_test1 = get_dataset(rgb = True)#rgb for lime
     x_train2,y_train2, x_test2,y_test2 = get_dataset(rgb = False)#grayscale for shap
 
-    model1 = train(rgb = True)
-    model1.compile(
-      loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-      optimizer=keras.optimizers.Adam(),
-      metrics=['accuracy']
-    )
-
-    print(model1.summary())
-
+    model1 = train_model("CNN",x_train1,y_train1,rgb = True)
     model1.fit(
             x_train1, 
             y_train1, 
@@ -294,15 +311,7 @@ def main_image():
             batch_size=32, 
             validation_data = (x_test1, y_test1))
 
-    model2 = train(rgb = False)
-    model2.compile(
-      loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-      optimizer=keras.optimizers.Adam(),
-      metrics=['accuracy']
-    )
-
-    print(model2.summary())
-
+    model2 = train_model("CNN",x_train2,y_train2,rgb = False)
     model2.fit(
             x_train2, 
             y_train2, 
@@ -314,90 +323,55 @@ def main_image():
     pred_fn1 = lambda images: model1.predict(images)
     #============================LIME Explainer ==========================================
     print("Building explanations with SHAP ...")
-    explainer = lime_image.LimeImageExplainer(random_state=42)
-
-    explanation_val = []
-    explanation=[]
-    for i in range(4):
-      e = explainer.explain_instance(
-             x_test1[10], 
-             pred_fn1)
-      explanation_val.append(e.segments)
-      explanation.append(e)
-
-    pp.imshow(x_test1[10])
-    image, mask = explanation[0].get_image_and_mask(
-             model1.predict(
-                  x_test1[10].reshape((1,28,28,3))
-             ).argmax(axis=1)[0],
-             positive_only=True, 
-             hide_rest=False)
-    pp.imshow(mark_boundaries(image, mask))
-
-    explanation_val_np = np.array(explanation_val)
+    explanation_val_np = Explanation(explainer= "LIME",
+      model = model1,
+      X = x_test1,
+      X_ref = x_test1,
+      dataSetType = "IMAGE",
+      task = "Classification")
     print("Done")
     #============================SHAP Explainer ==========================================
     print("Building explanations with SHAP ...")
-    background = x_test2[np.random.choice(x_test2.shape[0], 100, replace=False)]
-    e = shap.DeepExplainer(model2, background)
-    shap_values = e.shap_values(x_test2[1:5])
-    shap.image_plot(shap_values, x_test2[1:5])#,matplotlib=True)
-    sv = np.array(shap_values)
+    sv = Explanation(explainer= "SHAP",
+      model = model2,
+      X = x_test2,
+      X_ref = x_test2,
+      dataSetType = "IMAGE",
+      task = "Classification")
     print("Done")
     #===========================================Evaluation========================================
-    idx1=[]
-    idx2=[]
     
-    for i in range(5):
-      x_grayscale = x_train2[i]
-      x_rgbb = x_train1[i]
-      pred_grayscale = pred_func(x_grayscale,model2)[0]
-      pred_rgb = pred_func(x_rgbb,model1)[0]
-      max_grayscale = np.amax(pred_grayscale)
-      max_rgb = np.amax(pred_rgb)
-      _idx1 = np.where(pred_rgb == max_rgb)[0]
-      idx1.append(_idx1[0])
-      _idx2 = np.where(pred_grayscale == max_grayscale)[0]
-      idx2.append(_idx2[0])
-    idx1 = np.array(idx1)
-    idx2 = np.array(idx2)
+    fidelity_shap = metrics_image(
+        metrics_type="faithfulness",
+        X = x_test2,
+        model = model2,
+        explainer_type="SHAP",
+        shap_val=sv,
+        rgb = False)
+    fidelity_lime= metrics_image(
+        metrics_type="faithfulness",
+        X = x_test1,
+        model = model1,
+        explainer_type="LIME",
+        shap_val=explanation_val_np,
+        rgb = True)
 
-
-    base = np.zeros(x_test2[0].shape)
-    fidelity_shap = []
-    for i in range(4):
-      __idx = idx2[i]
-      coefs = sv[__idx,i,:,:,0]
-      X = x_test2[i]
-      fidelity_shap.append(faithfulness_metrics_image_cls(model2,X,coefs,base))
-
-    base = np.zeros(x_test1[0].shape)
-    # print(x_test1[0].shape)
-    fidelity_lime = []
-    for i in range(4):
-      __idx = idx1[i]
-      coefs = explanation_val_np[i]
-      X = x_test1[i]
-      # print(faithfulness_metrics_cls(model,X,coefs,base))
-      fidelity_lime.append(faithfulness_metrics_image_cls(model1,X,coefs,base))
     print("Average Fidelity for SHAP",fidelity_shap)
     print("Average Fidelity for LIME",fidelity_lime)
-    #Monotonicity
-    mono_LIME = []
-    for i in range(4):
-      __idx = idx1[i]
-      coefs = explanation_val_np[i]
-      X = x_test1[i]
-      # print(faithfulness_metrics_cls(model,X,coefs,base))
-      mono_LIME.append(monotonicity(model1,X,coefs,base))
-    mono_SHAP = []
-    base = np.zeros(x_test2[0].shape)
-    for i in range(4):
-      __idx = idx2[i]
-      coefs = sv[__idx,i,:,:,0]
-      X = x_test2[i]
-      # print(faithfulness_metrics_cls(model,X,coefs,base))
-      mono_SHAP.append(monotonicity(model2,X,coefs,base))
+    mono_SHAP = metrics_image(
+        metrics_type="monotonicity",
+        X = x_test2,
+        model = model2,
+        explainer_type="SHAP",
+        shap_val=sv,
+        rgb = False)
+    mono_LIME = metrics_image(
+        metrics_type="monotonicity",
+        X = x_test1,
+        model = model1,
+        explainer_type="LIME",
+        shap_val=explanation_val_np,
+        rgb = True)
     print("Monotonicity for SHAP",mono_SHAP)
     print("Monotonicity Fidelity for LIME",mono_LIME)
 # dataset1_cls = "wine"
@@ -411,8 +385,8 @@ dataset1_reg = "boston"
 # dataset3_reg = "diabetes"
 
 
-Main_reg(dataset1_reg)
+# Main_reg(dataset1_reg)
 # Main_reg(dataset2_reg)
 # Main_reg(dataset3_reg)
-
+Main_text()
 # main_image()

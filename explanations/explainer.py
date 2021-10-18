@@ -104,9 +104,9 @@ def Explanation(explainer,model,X,X_ref,dataSetType,task):
         elif dataSetType == "Text":
             if explainer == "SHAP":
                 exp = shap.DeepExplainer(model, X_ref)
-                shap_values = exp.shap_values(X)
+                shap_val = exp.shap_values(X)
 
-                return exp,shap_values
+                return shap_val
             elif explainer == "LIME":
                 class_names = ['negative', 'positive']
                 explainer = LimeTextExplainer(class_names=class_names)

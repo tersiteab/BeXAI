@@ -35,7 +35,7 @@ def get_dataset(rgb):
         return to_rgb(x_train),y_train,to_rgb(x_test),y_test
 
 
-def loadDataset(dataset):
+def loadDataset(dataset,rgb = True):
     if dataset == "boston":
         boston = sklearn.datasets.load_boston()
         boston_df = pd.DataFrame(boston['data'] )
@@ -77,6 +77,8 @@ def loadDataset(dataset):
         feature_names = wine.feature_names
 
         return X,y,target_names,feature_names
+    elif dataset == "image":
+        return get_dataset(rgb)
     else: 
         return None #TODO return error message
 
@@ -92,12 +94,12 @@ def split_train_test(X,y,test_size=0.3,randomstate=42,scale=False):
 
         return train_test_split(X_scaled,y_scaled,test_size=test_size,random_state=randomstate)
 
-def train(rgb):
-  if rgb == True:
-    i = 3
-  else:
-    i = 1
-  model = keras.Sequential(
+def train_cnn(rgb):
+    if rgb == True:
+        i = 3
+    else:
+        i = 1
+    model = keras.Sequential(
       [
       keras.Input(shape=(28,28,i)),
       layers.Conv2D(16, i, activation='relu'),
@@ -105,12 +107,26 @@ def train(rgb):
       layers.Flatten(),
       layers.Dense(10,activation='sigmoid')
       ]
-  )
-  return model
+    )
+    model.compile(
+      loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+      optimizer=keras.optimizers.Adam(),
+      metrics=['accuracy']
+    )
+    print(model.summary())
+    return model
 
-def RNN(x_train,y_train,x_test,y_test,words):
-    
+def RNN():
+    words=20000
+    max_length=100
+
+    (x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=words)
+    """Padding the Text"""
+    x_train = tf.keras.preprocessing.sequence.pad_sequences(x_train, maxlen=max_length)
+    x_test = tf.keras.preprocessing.sequence.pad_sequences(x_test, maxlen=max_length)
+
     word_size=words
+    word_size
     embed_size=128
 
     imdb_model=tf.keras.Sequential()
@@ -120,16 +136,18 @@ def RNN(x_train,y_train,x_test,y_test,words):
     imdb_model.add(tf.keras.layers.LSTM(units=128, activation='tanh'))
     # Output Layer
     imdb_model.add(tf.keras.layers.Dense(units=1, activation='sigmoid'))
-    print(imdb_model.summary())
+    imdb_model.summary()
+
     imdb_model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
-    
+
     imdb_model.fit(x_train, y_train, epochs=5, batch_size=128)
     test_loss, test_acurracy = imdb_model.evaluate(x_test, y_test)
     print("Test accuracy: {}".format(test_acurracy))
+            
     return imdb_model
 
 
-def train_model(model, X,y):
+def train_model(model, X,y,rgb = True):
     if model == "Linear Regression":
         lr = LinearRegression()
         lr.fit(X,y)
@@ -143,14 +161,33 @@ def train_model(model, X,y):
         svr.fit(X,y)
         return svr
     elif model == "RNN":
-        words=20000
-        max_length=100
+        # words=20000
+        # max_length=100
+        # (x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=words)
+        # """Padding the Text"""
+        # x_train = tf.keras.preprocessing.sequence.pad_sequences(x_train, maxlen=max_length)
+        # x_test = tf.keras.preprocessing.sequence.pad_sequences(x_test, maxlen=max_length)
 
-        (x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=words)
-        """Padding the Text"""
-        x_train = tf.keras.preprocessing.sequence.pad_sequences(x_train, maxlen=max_length)
-        x_test = tf.keras.preprocessing.sequence.pad_sequences(x_test, maxlen=max_length)
-        return RNN(x_train,y_train,x_test,y_test,words)
+        # word_size=words
+        
+        # embed_size=128
+
+        # imdb_model=tf.keras.Sequential()
+        # # Embedding Layer
+        # imdb_model.add(tf.keras.layers.Embedding(word_size, embed_size, input_shape=(x_train.shape[1],)))
+        # # LSTM Layer
+        # imdb_model.add(tf.keras.layers.LSTM(units=128, activation='tanh'))
+        # # Output Layer
+        # imdb_model.add(tf.keras.layers.Dense(units=1, activation='sigmoid'))
+        # imdb_model.summary()
+
+        # imdb_model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
+
+        # imdb_model.fit(x_train, y_train, epochs=5, batch_size=128)
+        # test_loss, test_acurracy = imdb_model.evaluate(x_test, y_test)
+        # print("Test accuracy: {}".format(test_acurracy))
+        imdb_model = RNN()
+        return imdb_model
     elif model == "Logistic Regression":
         lr = LogisticRegression(max_iter=10000)
         lr.fit(X,y)
@@ -170,6 +207,9 @@ def train_model(model, X,y):
         )
         svc.fit(X,y)
         return svc
+    elif model == "CNN":
+        cnn_model = train_cnn(rgb)
+        return cnn_model
     else:
         return None
 
