@@ -11,7 +11,7 @@ pip install -r requirements.txt
 ## Sample Usage
 Use the following command to test the performance of SHAP and LIME explainers in interpreting three regression models: Linear Regression, Random Forest Regression and SVM Regression when trained on boston dataset.
 ```
-python3 main.py --mode regression --boston
+python3 main.py --mode regression --dataset boston
 ```
 
 or edit the script ```run.sh``` and run it as 
