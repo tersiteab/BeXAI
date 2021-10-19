@@ -5,12 +5,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor,RandomForestClassifier
 from sklearn.linear_model import LinearRegression,LogisticRegression
 from sklearn.svm import SVR,SVC
-import matplotlib as plot
 import sklearn.metrics
 import sklearn.datasets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import RandomizedSearchCV
-import matplotlib.pyplot as plt
 from tensorflow.keras.datasets import mnist
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -21,12 +19,27 @@ tf.compat.v1.disable_v2_behavior()
 
 
 def to_rgb(x):
+    """
+    converts given image to rgb from grayscale
+    parameter
+    x: grayscale image 
+    return
+    rgb image
+    """
     x_rgb = np.zeros((x.shape[0], 28, 28, 3))
     for i in range(3):
         x_rgb[..., i] = x[..., 0]
     return x_rgb
 
 def get_dataset(rgb):
+    """
+    fetches mnist handwritten image dataset
+    parameters:
+    rgb(boolean): used in case of CNN to differentiate between rgb/grayscale input images
+ 
+    return
+    train and test image datasets
+    """
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
     x_train = x_train.reshape((-1,28,28,1)).astype('float32') 
     x_test = x_test.reshape((-1,28,28,1)).astype('float32') 
@@ -37,6 +50,14 @@ def get_dataset(rgb):
 
 
 def loadDataset(dataset,rgb = True):
+    """
+    loads datasets from different sources, but mainly from sklearn library
+    parameter:
+    dataset: name of dataset to be fetched
+    rgb(boolean): used in case of CNN to differentiate between rgb/grayscale input images
+    
+    return dataset
+    """
     if dataset == "boston":
         boston = sklearn.datasets.load_boston()
         boston_df = pd.DataFrame(boston['data'] )
@@ -85,6 +106,18 @@ def loadDataset(dataset,rgb = True):
 
 
 def split_train_test(X,y,test_size=0.3,randomstate=42,scale=False):
+    """
+    splits dataset into train and test set with given proportion
+
+    parameters:
+    X(pd DataFrame or np array): input dataset
+    y(pd DataFrame or np array): output label
+    test_size(float): test set proportion and is (0,1)
+    randomstate: set the random state of the dataset
+    scale(boolean): is used to identify if scaling(standard) is needed
+
+    return train and test set 
+    """
     if scale == False:
         X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=test_size,random_state=randomstate)
         return X_train,X_test,y_train,y_test
@@ -104,6 +137,14 @@ def tune_hyperparameters(dict,X,y,model,noIter):
     return res.best_params_
 
 def train_cnn(rgb):
+    """
+    Builds CNN with 4 layers
+    parameters
+    rgb(boolean): used in case of CNN to differentiate between rgb/grayscale input images
+
+    return compiled neural network
+
+    """
     if rgb == True:
         i = 3
     else:
@@ -126,6 +167,13 @@ def train_cnn(rgb):
     return model
 
 def RNN():
+    """
+    build LTSM RNN model
+    parameter:
+    None
+    return
+    RNN model
+    """
     words=20000
     max_length=100
 
@@ -157,13 +205,19 @@ def RNN():
 
 
 def train_model(model, X,y,rgb = True):
+    """
+    This function trains the target models.
+    
+    keyword arguments
+    model (string): type of the model
+    X(pd DataFrame or np array): input training dataset
+    y(pd DataFrame or np array): output label
+    rgb(boolean): used in case of CNN to differentiate between rgb/grayscale input images
+
+    returns trained model
+    """
     if model == "Linear Regression":
         lr = LinearRegression()
-        # params = {  'lrates' : [.5, .1, .01, .001, .0001],
-        #             # 'niterations' : [25000, 50000, 150000]
-        #         }
-        # best_params = tune_hyperparameters(params,X,y,lr,500)
-        # lr = LinearRegression(**best_params)
         lr.fit(X,y)
         return lr
     elif model == "Random Forest Regressor":

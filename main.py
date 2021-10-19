@@ -7,7 +7,6 @@ import shap
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as pp
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 tf.compat.v1.disable_v2_behavior()
@@ -15,10 +14,13 @@ tf.compat.v1.disable_v2_behavior()
 
 
 def Main_reg(dataset):
+    #load dataset
     X,y = loadDataset(dataset)
     sc = StandardScaler()
+    #split dataset to test and train datasets
     X_train,X_test,y_train,y_test = train_test_split(X,y)
     X_scaled = sc.fit_transform(X)
+    #scale the input with standard scaler
     X_train,X_test,y_train,y_test = train_test_split(X,y)
     if dataset == "diabetes":
         X_trainS,X_testS,y_trainS,y_testS = X_train.to_numpy(),X_test.to_numpy(),y_train.to_numpy(),y_test.to_numpy()
@@ -46,6 +48,7 @@ def Main_reg(dataset):
     print('R2 for Train', SVR_model.score( X_trainS, y_trainS))
     # print('R2 for Test (cross validation)', r2_score(y_testS, sc.inverse_transform(SVC_model.predict(X_testS))))
 
+    #generate random distribution for the explainers
     X100 = shap.maskers.Independent(X, max_samples=100)
     X100_ = shap.utils.sample(X, 100)
     X100S = shap.maskers.Independent(X_trainS, max_samples=100)
@@ -65,7 +68,7 @@ def Main_reg(dataset):
     SVR_lime = Explanation("LIME-SHAP",SVR_model,X_testS[:idx,],X100S,"tabular","Regression")
     print("Done building Explanation")
 
-
+    #evaluate the explainers with fidelity(faithfulness)
     faithfulness_LR_shap = metrics_reg(model=LR_model,X=X_test.iloc[:idx,],shap_val=LR_shap,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for shap Linear reg:",np.mean(np.array(faithfulness_LR_shap)))
     faithfulnes_LR_lime = metrics_reg(model=LR_model,X=X_test.iloc[:idx,],shap_val=LR_lime[:idx,],explainer_type="lime",metrics_type="faithfulness",dataset=dataset)
@@ -74,13 +77,14 @@ def Main_reg(dataset):
     print("Mean Faithfulness for shap RF reg:",np.mean(np.array(faithfulness_RF_shap)))
     faithfulnes_RF_lime = metrics_reg(model=RF_model,X=X_test.iloc[:idx,],shap_val=RF_lime[:idx,],explainer_type="lime",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for shap RF reg:",np.mean(np.array(faithfulnes_RF_lime)))
-    
+    #convert the numpy dataset to pandas dataframe
     xS = pd.DataFrame(X_testS,columns = X.columns)
 
     faithfulness_SVR_shap = metrics_reg(model=SVR_model,X=xS.iloc[:idx,],shap_val=SVR_shap,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for shap SVR reg:",np.mean(np.array(faithfulness_SVR_shap)))
     faithfulnes_SVR_lime = metrics_reg(model=SVR_model,X=xS.iloc[:idx,],shap_val=SVR_lime[:idx,],explainer_type="lime",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for shap SVR reg:",np.mean(np.array(faithfulnes_SVR_lime)))
+    #evaluate explainer with monotonicity
     monotonicity_LR_shap = metrics_reg(model=LR_model,X=X_test.iloc[:idx,],shap_val=LR_shap,explainer_type="shap",metrics_type="monotonicity",dataset=dataset)
     print(all(monotonicity_LR_shap))
     monotonicity_LR_lime = metrics_reg(model=LR_model,X=X_test.iloc[:idx,],shap_val=LR_lime,explainer_type="lime",metrics_type="monotonicity",dataset=dataset)
@@ -97,14 +101,15 @@ def Main_reg(dataset):
 
 
 def Main_cls(dataset):
-    print(dataset)
+    #load dataset
     if dataset == "wine":
         X,y,target_names,feature_names = loadDataset(dataset)
     else:
         X,y = loadDataset(dataset)
-    
+    #scale the input with standard scaler
     sc = StandardScaler()
     X_scaled = sc.fit_transform(X)
+    #split train and test dataset
     X_train,X_test,y_train,y_test = train_test_split(X,y)
     X_trainS,X_testS,y_trainS,y_testS = train_test_split(X_scaled,y)
 
@@ -124,11 +129,11 @@ def Main_cls(dataset):
     print('R2 for Test (cross validation)', LR_model.score(X_test, y_test))
     print("SVM classifier")
     print('R2 for Train)', SVC_model.score( X_trainS, y_trainS))
-    
+    #prediction function for the models
     predict_fnLR = lambda x:LR_model.predict_proba(x)[:,1]
     predict_fnRF = lambda x:RF_model.predict_proba(x)[:,1]
     predict_fnSVC = SVC_model.decision_function 
-
+    #generate random distribution for the explainers
     X100 = shap.maskers.Independent(X, max_samples=100)
     X100_ = shap.utils.sample(X, 100)
     

@@ -1,16 +1,5 @@
-import pandas as pd
 import numpy as np
-import sklearn 
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.svm import SVR
-import lime
-import shap
 import matplotlib as plot
-import sklearn.metrics
-import sklearn.datasets
-from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as pp
 
 
@@ -23,7 +12,20 @@ def pred_func(images,model):
     elif images.shape[2] == 3:
         return model.predict(images.reshape(1,28,28,3))
 
-def fai_cls_forText(model,x,coefs,base):
+def faithfulness_text(model,x,coefs,base):
+    """
+    computes the fidelity of text explainers 
+    
+    parameters:
+    model: target model, model.predict
+    x(np array): instance for which explanation is drawn
+    coef(np array): explanation (shap value or lime explanation)
+    base(np array): is used to ablate feature value. for text input, it has similar value used for padding
+
+    return 
+    (float)pearson correlation coefficient in range between(-1,1)
+    """
+    #TODO add more desciption about the technique used to compute fidelity
     pred_class = np.argmax(model.predict(x.reshape(1,-1)), axis=1)[0]
     ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
     pred_probs = np.zeros(x.shape[0])
@@ -32,12 +34,23 @@ def fai_cls_forText(model,x,coefs,base):
         x_copy[ind] = base[ind]
         x_copy_pr = model.predict(x_copy.reshape(1,-1))
         pred_probs[ind] = x_copy_pr[0][pred_class]
-        # print(pred_probs)
-        # print(pred_class)
 
     return -np.corrcoef(coefs, pred_probs)[0,1]
 
 def monotonicity_metric_txt(model, x, coefs, base):
+    
+    """
+    computes the monotonicity of explainers for text data
+    
+    parameters:
+    model: target model, model.predict
+    x(np array): instance for which explanation is drawn
+    coef(np array): explanation (shap value or lime explanation)
+    base(np array): is used to ablate feature value. base value for text input, it has similar value used for padding
+
+    return 
+    (boolean)monotonicity
+    """
     pred_class = np.argmax(model.predict(x.reshape(1,-1)), axis=1)[0]
 
     x_copy = base.copy()
@@ -66,7 +79,18 @@ def monotonicity_metric_txt(model, x, coefs, base):
 
 
 def faithfulness_metrics_image_cls(model,X,coefs,base):
+    """
+    computes the fidelity of image explainers 
     
+    parameters:
+    model: target model, model.predict
+    x(np array): image instance for which explanation is drawn
+    coef(np array): explanation (shap value or lime explanation)
+    base(np array): is used to ablate feature value. for image input, it is same as the background (white in case of mnist handwritten images)
+
+    return 
+    (float)pearson correlation value in range between(-1,1)
+    """
     pred_class = np.amax(pred_func(X,model))
     pred_probs = []
     shap_list = []
@@ -89,10 +113,21 @@ def faithfulness_metrics_image_cls(model,X,coefs,base):
 
 
 def monotonicity(model,X,coefs,base):
+    """
+    computes the fidelity of explainers for image data
+    
+    parameters:
+    model: target model, model.predict
+    x(np array): image instance for which explanation is drawn
+    coef(np array): explanation (shap value or lime explanation)
+    base(np array): is used to ablate feature value. base value is calculated as mean of each feature across the dataset
+
+    return 
+    (boolean)monotonicity
+    """
+    
     pred_class = np.amax(pred_func(X,model))
     shap_list = []
-    # print("original")
-    # plot(X)
     x_copy = base.copy()
 
     for i in range(1,8):
@@ -104,17 +139,15 @@ def monotonicity(model,X,coefs,base):
     ar = np.argsort(np.array(shap_list))
     pred_probs = np.zeros(np.array(shap_list).shape)#= []
     isPos = [False for i in range(len(ar))]
-
+    # add the image's super pixels in order of their importance
     for i in ar :  
       if shap_list[i]<0:
         isPos[i] = False
       else:
         isPos[i] = True
-      r = i // 4
-      c = i % 4
+      r = i // 4 # computes the row
+      c = i % 4 # computes the column
       x_copy[4*r :4*(r+1) ,4*c :4*(c+4),0] = X[4*r :4*(r+1) ,4*c :4*(c+4),0]
-      # print("ablated")
-      # plot(x_copy)
       x_copy_pr = np.amax(pred_func(x_copy,model))
       pred_probs[i]=x_copy_pr
 
@@ -130,6 +163,18 @@ def monotonicity(model,X,coefs,base):
     return any(final_)
     
 def faithfulness_metric_new_reg(model, x, coefs, base):
+    """
+    computes the fidelity of explainers for tabular data
+    
+    parameters:
+    model: target model, model.predict
+    x(np array): instance for which explanation is drawn
+    coef(np array): explanation (shap value or lime explanation)
+    base(np array): is used to ablate feature value. base value is calculated as mean of each feature across the dataset
+
+    return 
+    (float)pearson correlation value in range between(-1,1)
+    """
     predt = model.predict(np.transpose(x.reshape(-1,1)))
     ar = np.argsort(coefs) 
     pred_ts = np.zeros(x.shape[0])
@@ -147,7 +192,20 @@ def faithfulness_metric_new_reg(model, x, coefs, base):
     
     return -np.corrcoef(coefs, pred_ts)[0,1]
 
-def faithfulness_metrics_cls1(model,x,coefs,base):
+def faithfulness_metrics_cls(model,x,coefs,base):
+
+    """
+    computes the fidelity of explainers for tabular data
+    
+    parameters:
+    model: target model, model.predict
+    x(np array): instance for which explanation is drawn
+    coef(np array): explanation (shap value or lime explanation)
+    base(np array): is used to ablate feature value. base value is calculated as mean of each feature across the dataset
+
+    return 
+    (float)pearson correlation value in range between(-1,1)
+    """
     pred_class = np.argmax(model.predict_proba(x.reshape(1,-1)), axis=1)[0]
     p = np.amax(model.predict_proba(x.reshape(1,-1)))
 
@@ -171,6 +229,19 @@ def faithfulness_metrics_cls1(model,x,coefs,base):
 
 
 def monotonicity_metric_reg(model, x, coefs, base):
+    
+    """
+    computes the monotonicity of explainers for tabular data regression task
+    
+    parameters:
+    model: target model, model.predict
+    x(np array): instance for which explanation is drawn
+    coef(np array): explanation (shap value or lime explanation)
+    base(np array): is used to ablate feature value. base value is calculated as mean of each feature across the dataset
+
+    return 
+    (boolean)monotonicty
+    """
     predict_ = model.predict(np.transpose(x.reshape(-1,1)))
     x_copy = base.copy()
     ar = np.argsort(coefs)
@@ -197,6 +268,19 @@ def monotonicity_metric_reg(model, x, coefs, base):
     return any(final_)
 
 def monotonicity_metric_cls(model, x, coefs, base):
+    """
+    computes the monotonicity of explainers for tabular data classification
+    
+    parameters:
+    model: target model, model.predict
+    x(np array): instance for which explanation is drawn
+    coef(np array): explanation (shap value or lime explanation)
+    base(np array): is used to ablate feature value. base value is calculated as mean of each feature across the dataset
+
+    return 
+    (boolean )monotonicity
+    """
+    
     pred_class = np.argmax(model.predict_proba(x.reshape(1,-1)), axis=1)[0]
     x_copy = base.copy()
     #find indexs of coefficients in increasing order of value
@@ -224,6 +308,20 @@ def monotonicity_metric_cls(model, x, coefs, base):
     return any(final_)
 
 def metrics_reg(model,X,shap_val,explainer_type,metrics_type,dataset):
+    """
+    description: for tabular dataset and regression task
+    parameters:
+    model: target model
+    X(np array): instances of for which explanations are generated
+    shap_val(np array): shap value of lime explanation
+    explainer_type(string): type or explainer; SHAP or LIME
+    metrics_type(string): type of evaluation metric: faithfulness or monotonicity
+    dataset(string): dataset name; boston, superconductivity or diabetes
+
+    return
+    fidelity(float array) in case of faithfulness or
+    monotonicity(boolean array) in case of monotonicty
+    """
     cols = X.columns
     if dataset == "boston":
       base1 = X[cols].mean()
@@ -284,7 +382,20 @@ def metrics_reg(model,X,shap_val,explainer_type,metrics_type,dataset):
 
 
 def metrics_cls(model,X,shap_val,explainer_type,metrics_type,dataset):
-   
+    """
+    description: for tabular dataset and classification task
+    parameters:
+    model: target model
+    X(np array): instances of for which explanations are generated
+    shap_val(np array): shap value of lime explanation
+    explainer_type(string): type or explainer; SHAP or LIME
+    metrics_type(string): type of evaluation metric: faithfulness or monotonicity
+    dataset(string): dataset name; boston, superconductivity or diabetes
+
+    return
+    fidelity(float array) in case of faithfulness or
+    monotonicity(boolean array) in case of monotonicty
+    """
     base = np.mean(X,axis=0)
     if metrics_type == "faithfulness":
         faithfulness = []
@@ -295,7 +406,7 @@ def metrics_cls(model,X,shap_val,explainer_type,metrics_type,dataset):
                     coefs = shap_val[i]
                 else:# print(shap_val[i])
                     coefs = shap_val[i].values
-                f = faithfulness_metrics_cls1(model, x, coefs, base)
+                f = faithfulness_metrics_cls(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
         elif explainer_type == "kernel shap":
@@ -303,14 +414,14 @@ def metrics_cls(model,X,shap_val,explainer_type,metrics_type,dataset):
                 x = X[i,:]
                 # print(shap_val[i])
                 coefs = shap_val[i]
-                f = faithfulness_metrics_cls1(model, x, coefs, base)
+                f = faithfulness_metrics_cls(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
         elif explainer_type == "lime":
             for i in range(X.shape[0]):
                 x = X[i,:]
                 coefs = shap_val[i]
-                f = faithfulness_metrics_cls1(model, x, coefs, base)
+                f = faithfulness_metrics_cls(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
         plot(faithfulness)
@@ -339,6 +450,20 @@ def metrics_cls(model,X,shap_val,explainer_type,metrics_type,dataset):
                 monotonicity.append(f)
         return monotonicity
 def metrics_image(metrics_type,X,model,explainer_type,shap_val,rgb=True):
+    """
+    description: for image classification task
+    parameters:
+    model: target model
+    X(np array): image instances of for which explanations are generated
+    shap_val(np array): shap value of lime explanation
+    explainer_type(string): type or explainer; SHAP or LIME
+    metrics_type(string): type of evaluation metric: faithfulness or monotonicity
+    rgb(boolean): used in case of CNN to differentiate between rgb/grayscale input images
+
+    return
+    fidelity(float array) in case of faithfulness or
+    monotonicity(boolean array) in case of monotonicty
+    """
     idx=[]
     for i in range(5):
         pred= pred_func(X[i],model)[0]
@@ -384,6 +509,19 @@ def metrics_image(metrics_type,X,model,explainer_type,shap_val,rgb=True):
             return mono_LIME
     
 def metrics_text(metrics_type,X,model,explainer_type,shap_val):
+    """
+    description: for text classification task
+    parameters:
+    model: target model
+    X(np array): text instances of for which explanations are generated
+    shap_val(np array): shap value or lime explanation
+    explainer_type(string): type of explainer; SHAP or LIME
+    metrics_type(string): type of evaluation metric: faithfulness or monotonicity
+    
+    return
+    fidelity(float array) in case of faithfulness or
+    monotonicity(boolean array) in case of monotonicty
+    """
     base = np.zeros(shape=(100))
     if metrics_type == "faithfulness":
         if explainer_type == "SHAP":
@@ -391,7 +529,7 @@ def metrics_text(metrics_type,X,model,explainer_type,shap_val):
             for i in range(10):
                 x = X[i]
                 coefs = shap_val[0][i]
-                f.append(fai_cls_forText(model,x,coefs,base))
+                f.append(faithfulness_text(model,x,coefs,base))
             return f
         #elif explainer_type == "LIME":
     elif metrics_type == "monotonicity":
