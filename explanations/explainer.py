@@ -1,5 +1,4 @@
-import numpy as np
-sklearn 
+import numpy as np 
 import lime
 from lime.lime_text import LimeTextExplainer
 from lime import lime_image
@@ -147,3 +146,19 @@ def Explanation(explainer,model,X,X_ref,dataSetType,task):
 
 
    
+def visualize1(X, shap_value,type_of_Vis,local_global):
+    #TODO
+    if local_global == "local":
+        shap.initjs()
+        if type_of_Vis == "force":
+            shap.plots.force(shap_value)
+        
+    elif local_global == "global":
+        if type_of_Vis == "plot bar":
+            shap.plots.bar(shap_value)
+        elif type_of_Vis == "heatmap":
+            shap.plots.heatmap(shap_value)
+        elif type_of_Vis == "summary plot":
+            shap.summary_plot(shap_value, X)
+        
+
