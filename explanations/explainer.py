@@ -17,6 +17,20 @@ from sklearn.preprocessing import StandardScaler
 
 
 def Explanation(explainer,model,X,X_ref,dataSetType,task):
+    """
+    build local explanation for target model using SHAP and LIME explainers
+
+    parameters:
+    explainer(string): defines the type of explainer to be used, either SHAP or LIME
+    model: target model
+    X: instance for which explantion is generated
+    X_ref: is used to generate random distribution from which the explainers can 
+    datasetType: defines the type of underlying datasest
+    task: defines the task of the model, either classification or regression
+
+    returns
+    explanation(SHAP value or LIME explanation)
+    """
     if task == "Regression":
         if dataSetType == "tabular":
             if explainer == "SHAP":
