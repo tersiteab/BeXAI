@@ -16,6 +16,10 @@ def faithfulness_text(model,x,coefs,base):
     """
     computes the fidelity of text explainers 
     
+    To measure fidelity, each attribute is removed( and replaced by base value) in the order of increasing SHAP or LIME value. 
+    Then the prediction of the modified instance is evaluated. Finally, the correlation between the weights(SHAPor LIME values) 
+    of the attributes and corresponding model prediction measures the faithfulness.
+    
     parameters:
     model: target model, model.predict
     x(np array): instance for which explanation is drawn
@@ -42,6 +46,10 @@ def monotonicity_metric_txt(model, x, coefs, base):
     """
     computes the monotonicity of explainers for text data
     
+    This metric measures the effect of individual features on model prediction when each feature is added in order of 
+    its importance assigned by the explainers. As each feature is added, the performance of the model should correspondingly 
+    increase, thereby resulting in monotonically increasing model performance.
+
     parameters:
     model: target model, model.predict
     x(np array): instance for which explanation is drawn
@@ -82,6 +90,10 @@ def faithfulness_metrics_image_cls(model,X,coefs,base):
     """
     computes the fidelity of image explainers 
     
+    To measure fidelity, each attribute is removed( and replaced by base value) in the order of increasing SHAP or LIME value. 
+    Then the prediction of the modified instance is evaluated. Finally, the correlation between the weights(SHAPor LIME values) 
+    of the attributes and corresponding model prediction measures the faithfulness.
+
     parameters:
     model: target model, model.predict
     x(np array): image instance for which explanation is drawn
@@ -116,6 +128,10 @@ def monotonicity(model,X,coefs,base):
     """
     computes the fidelity of explainers for image data
     
+    This metric measures the effect of individual features on model prediction when each feature is added in order of 
+    its importance assigned by the explainers. As each feature is added, the performance of the model should correspondingly 
+    increase, thereby resulting in monotonically increasing model performance.
+
     parameters:
     model: target model, model.predict
     x(np array): image instance for which explanation is drawn
@@ -166,6 +182,10 @@ def faithfulness_metric_new_reg(model, x, coefs, base):
     """
     computes the fidelity of explainers for tabular data
     
+    To measure fidelity, each attribute is removed( and replaced by base value) in the order of increasing SHAP or LIME value. 
+    Then the prediction of the modified instance is evaluated. Finally, the correlation between the weights(SHAPor LIME values) 
+    of the attributes and corresponding model prediction measures the faithfulness.
+
     parameters:
     model: target model, model.predict
     x(np array): instance for which explanation is drawn
@@ -196,7 +216,11 @@ def faithfulness_metrics_cls(model,x,coefs,base):
 
     """
     computes the fidelity of explainers for tabular data
-    
+
+    To measure fidelity, each attribute is removed( and replaced by base value) in the order of increasing SHAP or LIME value. 
+    Then the prediction of the modified instance is evaluated. Finally, the correlation between the weights(SHAPor LIME values) 
+    of the attributes and corresponding model prediction measures the faithfulness.
+
     parameters:
     model: target model, model.predict
     x(np array): instance for which explanation is drawn
@@ -233,6 +257,10 @@ def monotonicity_metric_reg(model, x, coefs, base):
     """
     computes the monotonicity of explainers for tabular data regression task
     
+    This metric measures the effect of individual features on model prediction when each feature is added in order of 
+    its importance assigned by the explainers. As each feature is added, the performance of the model should correspondingly 
+    increase, thereby resulting in monotonically increasing model performance.
+
     parameters:
     model: target model, model.predict
     x(np array): instance for which explanation is drawn
@@ -271,6 +299,10 @@ def monotonicity_metric_cls(model, x, coefs, base):
     """
     computes the monotonicity of explainers for tabular data classification
     
+    This metric measures the effect of individual features on model prediction when each feature is added in order of 
+    its importance assigned by the explainers. As each feature is added, the performance of the model should correspondingly 
+    increase, thereby resulting in monotonically increasing model performance.
+
     parameters:
     model: target model, model.predict
     x(np array): instance for which explanation is drawn
