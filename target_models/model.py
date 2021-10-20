@@ -68,7 +68,7 @@ def loadDataset(dataset,rgb = True):
         X = boston_df.iloc[:,0:13]
         return X, y
     elif dataset == "superconductivity":
-        df = pd.read_csv("/home/teadem/ExplainableAI/datasets/train.csv")
+        df = pd.read_csv("~/train.csv")#set path for the dataset
         y = df['critical_temp']
         X = df.drop('critical_temp',axis=1)
 

@@ -3,10 +3,15 @@ import lime
 from lime.lime_text import LimeTextExplainer
 from lime import lime_image
 import shap
-import sklearn.metrics
-import sklearn.datasets
+from keras.preprocessing.text import Tokenizer
+import tensorflow as tf
 
-
+def predict_func(x,model,max_length=100):
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(x)
+    _seq = tokenizer.texts_to_sequences(texts = x)
+    _text_data = tf.keras.preprocessing.sequence.pad_sequences(_seq, maxlen=max_length)
+    return model.predict(_text_data)
 
 def Explanation(explainer,model,X,X_ref,dataSetType,task):
     """
@@ -116,8 +121,8 @@ def Explanation(explainer,model,X,X_ref,dataSetType,task):
             elif explainer == "LIME":
                 class_names = ['negative', 'positive']
                 explainer = LimeTextExplainer(class_names=class_names)
-               
-                explanation = explainer.explain_instance(X, model.predict, num_features=100)
+                pred_f = lambda x : predict_func(x,model)
+                explanation = explainer.explain_instance(X, pred_f, num_features=100)
                 return explanation
         elif dataSetType == "IMAGE":
             if explainer == "SHAP":
