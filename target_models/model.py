@@ -74,6 +74,7 @@ def loadDataset(dataset,rgb = True):
 
         return X,y
     elif dataset == "diabetes":
+        
         diabetes = sklearn.datasets.load_diabetes()
         diabetes_df = pd.DataFrame(diabetes.data )
         diabetes_df.columns = diabetes.feature_names

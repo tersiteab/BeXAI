@@ -108,14 +108,14 @@ def faithfulness_metrics_image_cls(model,X,coefs,base):
     shap_list = []
     
     # plot(X)
-    for i in range(1,5):
-      for j in range(1,5):
+    for i in range(1,8):
+      for j in range(1,8):
         #compute average shap_val for superpixel of size (4x4)
-        avg_shap = np.average(coefs[7*(i-1) :7*i ,7*(j-1) :7*j])
+        avg_shap = np.average(coefs[4*(i-1) :4*i ,4*(j-1) :4*j])
 
         shap_list.append(avg_shap)                      
         x_copy = X.copy()
-        x_copy[7*(i-1) :7*i ,7*(j-1) :7*j,0] = base[7*(i-1) :7*i ,7*(j-1) :7*j,0]
+        x_copy[4*(i-1) :4*i ,4*(j-1) :4*j,0] = base[4*(i-1) :4*i ,4*(j-1) :4*j,0]
         
         # plot(x_copy)
         
