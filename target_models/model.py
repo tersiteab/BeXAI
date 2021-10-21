@@ -74,7 +74,7 @@ def loadDataset(dataset,rgb = True):
 
         return X,y
     elif dataset == "diabetes":
-        
+
         diabetes = sklearn.datasets.load_diabetes()
         diabetes_df = pd.DataFrame(diabetes.data )
         diabetes_df.columns = diabetes.feature_names
@@ -248,31 +248,7 @@ def train_model(model, X,y,rgb = True):
         svr.fit(X,y)
         return svr
     elif model == "RNN":
-        # words=20000
-        # max_length=100
-        # (x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=words)
-        # """Padding the Text"""
-        # x_train = tf.keras.preprocessing.sequence.pad_sequences(x_train, maxlen=max_length)
-        # x_test = tf.keras.preprocessing.sequence.pad_sequences(x_test, maxlen=max_length)
-
-        # word_size=words
-        
-        # embed_size=128
-
-        # imdb_model=tf.keras.Sequential()
-        # # Embedding Layer
-        # imdb_model.add(tf.keras.layers.Embedding(word_size, embed_size, input_shape=(x_train.shape[1],)))
-        # # LSTM Layer
-        # imdb_model.add(tf.keras.layers.LSTM(units=128, activation='tanh'))
-        # # Output Layer
-        # imdb_model.add(tf.keras.layers.Dense(units=1, activation='sigmoid'))
-        # imdb_model.summary()
-
-        # imdb_model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
-
-        # imdb_model.fit(x_train, y_train, epochs=5, batch_size=128)
-        # test_loss, test_acurracy = imdb_model.evaluate(x_test, y_test)
-        # print("Test accuracy: {}".format(test_acurracy))
+       
         imdb_model = RNN()
         return imdb_model
     elif model == "Logistic Regression":
