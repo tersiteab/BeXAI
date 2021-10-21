@@ -19,6 +19,8 @@ or edit the script ```run.sh``` and run it as
 ./run.sh
 ```
 
+NB for ```regression``` mode the available dataset options are ```boston```, ```superconductivity``` and ```diabetes``` datasets. And for ```classification``` mode, the available dataset options are ```wine``` and ```breast_cancer```(for tabular dataset), ```image``` and ```text``` for image and text datasets resp. Passing different arguments will cause the application throw exceptions.
+
 ## Target Models
 
 **Regression Models**:
