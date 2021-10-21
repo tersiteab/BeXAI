@@ -11,7 +11,6 @@ import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 import sklearn
 import lime
-import shap
 import matplotlib as plt
 tf.compat.v1.disable_v2_behavior()
 
